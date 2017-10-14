@@ -14,6 +14,8 @@ import Database.Persist.Sqlite
 import Database.Persist.TH
 import Control.Monad.Logger
 import Control.Monad.Reader
+import qualified Web.Scotty as S
+import Network.Wai.Middleware.RequestLogger (logStdoutDev)
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Person
@@ -55,4 +57,9 @@ main :: IO ()
 main = do
   dbFunction doMigrations
   dbFunction doDbStuff
+  S.scotty 8080 $ do
+    S.middleware logStdoutDev
+    S.get "/:word" $ do
+      world <- S.param "word"
+      S.html $ mconcat ["<h1>Hello, ", world, "!</h1>"]
 
