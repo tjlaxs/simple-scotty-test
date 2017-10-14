@@ -3,9 +3,10 @@
 module Main where
 
 import Lib
-import Web.Scotty
+import qualified Web.Scotty as Scotty
 
 main :: IO ()
-main = scotty 8080 $ do
-  get "/" helo
+main =
+  Scotty.scotty 8080 $ do
+    Scotty.get "/" indexPage
 

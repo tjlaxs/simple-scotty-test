@@ -1,11 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Lib
-    ( helo
+    ( indexPage
     ) where
 
-import Web.Scotty
+import qualified Web.Scotty as S
+import qualified Text.Blaze.Html5 as H
+import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html.Renderer.Text
 
-helo :: ActionM ()
-helo = do
-  html "Hello World!"
+indexPage :: S.ActionM ()
+indexPage = do
+  S.html . renderHtml $ do
+    H.h1 "Simple db test"
