@@ -12,6 +12,8 @@ import Control.Monad.IO.Class (liftIO)
 import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
+import Control.Monad.Logger
+import Control.Monad.Reader
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Person
@@ -24,10 +26,16 @@ BlogPost
   deriving Show
 |]
 
-main :: IO ()
-main = runSqlite ":memory:" $ do
-  runMigration migrateAll
+asSqlBackendReader :: ReaderT SqlBackend m a -> ReaderT SqlBackend m a
+asSqlBackendReader = id
 
+dbFunction query = runStderrLoggingT $
+  withSqlitePool "test.db" 10 $
+  \pool -> liftIO $ (runSqlPersistMPool . asSqlBackendReader) query pool
+
+doMigrations = runMigration migrateAll
+
+doDbStuff = do
   johnId <- insert $ Person "John Doe" $ Just 34
   janeId <- insert $ Person "Jane Doe" $ Nothing
 
@@ -42,4 +50,9 @@ main = runSqlite ":memory:" $ do
 
   delete janeId
   deleteWhere [BlogPostAuthorId ==. johnId]
+
+main :: IO ()
+main = do
+  dbFunction doMigrations
+  dbFunction doDbStuff
 
